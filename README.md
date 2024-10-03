@@ -7,15 +7,15 @@ This project implements an ERC-20 token called DOJO using the OpenZeppelin libra
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contracts](#contracts)
-  - [DOJO](#dojo)
-  - [OJOD](#ojod)
-  - [Staking](#staking)
-- [License](#license)
+- Introduction
+- Technologies Used
+- Installation
+- Usage
+- Contracts
+  - DOJO
+  - OJOD
+  - Staking
+- License
 
 ## Introduction
 
@@ -23,10 +23,10 @@ The DOJO Token Project is a decentralized application (dApp) that includes an ER
 
 ## Technologies Used
 
-- **React**: A JavaScript library for building user interfaces.
-- **Bootstrap**: A CSS framework for developing responsive and mobile-first websites.
-- **Solidity**: A programming language for writing smart contracts on the Ethereum blockchain.
-- **Foundry**: A blazing fast, portable, and modular toolkit for Ethereum application development.
+- React: A JavaScript library for building user interfaces.
+- Bootstrap: A CSS framework for developing responsive and mobile-first websites.
+- Solidity: A programming language for writing smart contracts on the Ethereum blockchain.
+- Foundry: A blazing fast, portable, and modular toolkit for Ethereum application development.
 
 ## Installation
 
