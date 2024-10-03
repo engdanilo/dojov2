@@ -1,6 +1,6 @@
 ### README.md
 
-```markdown
+
 # DOJO Token Project
 
 This project implements an ERC-20 token called DOJO using the OpenZeppelin library. The project includes a frontend developed with React and Bootstrap, and smart contracts written in Solidity using the Foundry framework. This project was developed for the Dojo V2 challenge by NearX and created by Dojo Nakamura.
