@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./NKMT.sol";
+import "./INKMT.sol";
+import "./IOJOD.sol";
 
 contract Staking {
-    NakamotoCoin public nkmt;
+    INKMT public nkmt;
+    IOJOD public ojod;
     uint256 public airdropAmount;
     uint256 public stakingPeriod;
     uint256 public rewardRate;
@@ -34,8 +36,9 @@ contract Staking {
         _;
     }
 
-    constructor(NakamotoCoin _nkmt, uint256 _airdropAmount, uint256 _stakingPeriod, uint256 _initialRewardRate) {
+    constructor(INKMT _nkmt, IOJOD _ojod, uint256 _airdropAmount, uint256 _stakingPeriod, uint256 _initialRewardRate) {
         nkmt = _nkmt;
+        ojod = _ojod;
         airdropAmount = _airdropAmount;
         stakingPeriod = _stakingPeriod;
         rewardRate = _initialRewardRate;
@@ -92,7 +95,7 @@ contract Staking {
         }
 
         // Transfer airdrop tokens to staker
-        nkmt.transfer(msg.sender, airdropAmount);
+        ojod.transfer(msg.sender, airdropAmount);
 
         emit Airdrop(msg.sender, airdropAmount);
     }
