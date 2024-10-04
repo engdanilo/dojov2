@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract NKMT {
+import "./IERC20.sol";
 
-    string public name = "NakamotoCoin";
-    string public symbol = "NKMT";
-    uint8 public decimals = 18;
+contract NKMT is IERC20 {
+
+    string public _name = "NakamotoCoin";
+    string public _symbol = "NKMT";
+    uint8 public _decimals = 18;
     uint256 public totalSupply;
     address public owner;
 
@@ -36,7 +38,7 @@ contract NKMT {
 
     function transfer(address recipient, uint256 amount) public returns (bool) {
 
-        require(amount == 1*10**decimals, "You can only transfer 1 NKMT at a time");
+        require(amount == 1*10**decimals(), "You can only transfer 1 NKMT at a time");
         _transfer(msg.sender, recipient, amount);
 
         return true;
@@ -45,7 +47,7 @@ contract NKMT {
     function transferFrom(address sender, address recipient, uint256 amount) public returns (bool) {
 
         if (msg.sender != owner) {
-            require(amount == 1*10**decimals, "You can only transfer 1 NKMT at a time");
+            require(amount == 1*10**decimals(), "You can only transfer 1 NKMT at a time");
         }
 
         uint256 currentAllowance = allowances[sender][msg.sender];
@@ -72,12 +74,28 @@ contract NKMT {
         emit Transfer(sender, recipient, amount);
      }
 
-     function _approve(address owner, address spender, uint256 amount) internal {
-        require(owner != address(0), "Approve from the zero address");
+     function _approve(address _owner, address spender, uint256 amount) internal {
+        require(_owner != address(0), "Approve from the zero address");
         require(spender != address(0), "Approve to the zero address");
 
-        allowances[owner][spender] = amount;
+        allowances[_owner][spender] = amount;
 
-        emit Approval(owner, spender, amount);
+        emit Approval(_owner, spender, amount);
+     }
+
+     function allowance(address _owner, address spender) public view returns (uint256) {
+        return allowances[_owner][spender];
+     }
+
+     function name() public view returns (string memory) {
+        return _name;
+     }
+
+     function symbol() public view returns (string memory) {
+        return _symbol;
+     }
+
+     function decimals() public view returns (uint8) {
+        return _decimals;
      }
 }
