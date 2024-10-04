@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract NakamotoCoin {
+contract NKMT {
 
     string public name = "NakamotoCoin";
     string public symbol = "NKMT";
@@ -25,7 +25,7 @@ contract NakamotoCoin {
         owner = msg.sender;
         totalSupply = initialSupply;
         balances[msg.sender] = initialSupply;
-        
+
         emit Transfer(address(0), msg.sender, initialSupply);
     }
 
