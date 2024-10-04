@@ -1,47 +1,108 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "./NKMT.sol";
 
-contract Staking is Ownable {
+contract Staking {
+    NakamotoCoin public nkmt;
+    uint256 public airdropAmount;
+    uint256 public stakingPeriod;
+    uint256 public rewardRate;
+    address public owner;
 
-    IERC20 public dojoToken;
-    IERC20 public ojodToken;
-
-    struct Stake {
+    struct Staker {
         uint256 amount;
-        uint256 timestamp;
+        uint256 stakingTime;
     }
 
-    mapping(address => Stake) public stakes;
-    uint256 public rewardRate = 1;
+    mapping(address => Staker) public stakers;
 
-    constructor(address _dojoToken, address _ojodToken) Ownable(address(msg.sender)) {
-        dojoToken =  IERC20(_dojoToken);
-        ojodToken = IERC20(_ojodToken);
+    event Staked(address indexed user, uint256 amount, uint256 timestamp);
+    event Unstaked(address indexed user, uint256 amount, uint256 reward);
+    event Airdrop(address indexed user, uint256 amount);
+    event RewardRateUpdated(uint256 newRate);
+
+    error InsufficientBalance();
+    error NoTokensStaked();
+    error StakingPeriodNotOver();
+    error NotOwner();
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) {
+            revert NotOwner();
+        }
+        _;
     }
 
-    function stake(uint256 amount) external {
-        require(amount > 0, "Amount moust be greater than 0");
-        dojoToken.transferFrom(msg.sender, address(this), amount);
-        stakes[msg.sender] = Stake(amount, block.timestamp);
+    constructor(NakamotoCoin _nkmt, uint256 _airdropAmount, uint256 _stakingPeriod, uint256 _initialRewardRate) {
+        nkmt = _nkmt;
+        airdropAmount = _airdropAmount;
+        stakingPeriod = _stakingPeriod;
+        rewardRate = _initialRewardRate;
+        owner = msg.sender;
     }
 
-    function unstake() external {
-        Stake memory stakeData = stakes[msg.sender];
-        require(stakeData.amount > 0, "No tokens staked yet");
-
-        uint256 stakingDuration = block.timestamp - stakeData.timestamp;
-        uint256 reward = stakingDuration * rewardRate * stakeData.amount / 1e18;
-
-        dojoToken.transfer(msg.sender, stakeData.amount);
-        ojodToken.transfer(msg.sender, reward);
-
-        delete stakes[msg.sender];
+    // Function to define the reward rate (onlyOwner)
+    function setRewardRate(uint256 _newRate) public onlyOwner {
+        rewardRate = _newRate;
+        emit RewardRateUpdated(_newRate);
     }
 
-    function setRewardRate(uint256 _rewardRate) external onlyOwner {
-        rewardRate = _rewardRate;
+    // Function to stake tokens
+    function stake(uint256 _amount) public {
+        if (_amount <= 0) {
+            revert InsufficientBalance();
+        }
+        if (nkmt.balanceOf(msg.sender) < _amount) {
+            revert InsufficientBalance();
+        }
+
+        // Transfer tokens to staking contract
+        nkmt.transferFrom(msg.sender, address(this), _amount);
+
+        stakers[msg.sender].amount += _amount;
+        stakers[msg.sender].stakingTime = block.timestamp;
+
+        emit Staked(msg.sender, _amount, block.timestamp);
+    }
+
+    // Function to unstake tokens
+    function unstake() public {
+        if (stakers[msg.sender].amount <= 0) {
+            revert NoTokensStaked();
+        }
+
+        uint256 stakingDuration = block.timestamp - stakers[msg.sender].stakingTime;
+        uint256 total = stakingDuration * rewardRate * stakers[msg.sender].amount / 1e18;
+        uint256 reward = total - stakers[msg.sender].amount;
+
+        stakers[msg.sender].amount = 0;
+        nkmt.transfer(msg.sender, total);
+
+        emit Unstaked(msg.sender, total, reward);
+    }
+
+    // Function to airdrop tokens
+    function airdrop() public {
+        if (stakers[msg.sender].amount <= 0) {
+            revert NoTokensStaked();
+        }
+        if (block.timestamp <= stakers[msg.sender].stakingTime + stakingPeriod) {
+            revert StakingPeriodNotOver();
+        }
+
+        // Transfer airdrop tokens to staker
+        nkmt.transfer(msg.sender, airdropAmount);
+
+        emit Airdrop(msg.sender, airdropAmount);
+    }
+
+    // Function to get remaining staking time
+    function remainingStakingTime(address _staker) public view returns (uint256) {
+        if (block.timestamp >= stakers[_staker].stakingTime + stakingPeriod) {
+            return 0;
+        } else {
+            return (stakers[_staker].stakingTime + stakingPeriod) - block.timestamp;
+        }
     }
 }
