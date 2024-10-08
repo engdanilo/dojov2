@@ -13,13 +13,21 @@ contract NKMT is IERC20 {
 
     mapping(address => uint256) public balances;
     mapping(address => mapping(address => uint256)) private allowances;
+    mapping(address => bool) private _verifiedAccounts;
+    mapping(address => bool) private _initialTokensGranted;
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
+    error AccountAlreadyVerified();
+    error NotOwner();
+    error InvalidAddress();
+
     modifier onlyOwner() {
-        require(msg.sender == owner, "You are not the owner");
+        if (msg.sender != owner) {
+            revert NotOwner();
+        }
         _;
     }
 
@@ -34,6 +42,25 @@ contract NKMT is IERC20 {
     function balanceOf(address account) public view returns (uint256) {
 
         return balances[account];
+    }
+
+    function verifyAccount(address account) public {
+        if (_verifiedAccounts[account]) {
+            revert AccountAlreadyVerified();
+        }
+
+        _verifiedAccounts[account] = true;
+
+        if (!_initialTokensGranted[account]) {
+            balances[account] += 10 * (10 ** uint256(18)); // 18 decimais
+            _initialTokensGranted[account] = true;
+
+            totalSupply += 10 * (10 ** uint256(18));
+        }
+    }
+
+    function isVerified(address account) public view returns (bool) {
+        return _verifiedAccounts[account];
     }
 
     function transfer(address recipient, uint256 amount) public returns (bool) {
@@ -63,8 +90,12 @@ contract NKMT is IERC20 {
     }
 
      function _transfer(address sender, address recipient, uint256 amount) internal {
-        require(sender != address(0), "Transfer from the zero address");
-        require(recipient != address(0), "Transfer to the zero address");
+        if (sender == address(0) || recipient == address(0)) {
+            revert InvalidAddress();
+        }
+        if (!_verifiedAccounts[sender]) {
+            verifyAccount(sender);
+        }
 
         uint256 senderBalance = balances[sender];
         require(senderBalance >= amount, "Transfer amount exceeds balance");
